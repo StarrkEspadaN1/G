@@ -119,4 +119,150 @@ Real Real::operator-() const {
 
 Real Real::operator+(const Real& other) const {
     // Складываем как Rational
-    Rational thisRational = Rational(integerPart, Integer(1
+    Rational thisRational = Rational(integerPart, Integer(1)) + fractionalPart;
+    Rational otherRational = Rational(other.integerPart, Integer(1)) + other.fractionalPart;
+    Rational sum = thisRational + otherRational;
+    
+    Integer intPart = sum.integerPart();
+    Rational fracPart = sum.fractionalPart();
+    
+    Real result(intPart, fracPart);
+    result.normalize();
+    return result;
+}
+
+Real Real::operator-(const Real& other) const {
+    Rational thisRational = Rational(integerPart, Integer(1)) + fractionalPart;
+    Rational otherRational = Rational(other.integerPart, Integer(1)) + other.fractionalPart;
+    Rational diff = thisRational - otherRational;
+    
+    Integer intPart = diff.integerPart();
+    Rational fracPart = diff.fractionalPart();
+    
+    Real result(intPart, fracPart);
+    result.normalize();
+    return result;
+}
+
+Real Real::operator*(const Real& other) const {
+    Rational thisRational = Rational(integerPart, Integer(1)) + fractionalPart;
+    Rational otherRational = Rational(other.integerPart, Integer(1)) + other.fractionalPart;
+    Rational product = thisRational * otherRational;
+    
+    Integer intPart = product.integerPart();
+    Rational fracPart = product.fractionalPart();
+    
+    Real result(intPart, fracPart);
+    result.normalize();
+    return result;
+}
+
+Real Real::operator/(const Real& other) const {
+    if (other == Real(0)) {
+        throw std::runtime_error("Division by zero");
+    }
+    
+    Rational thisRational = Rational(integerPart, Integer(1)) + fractionalPart;
+    Rational otherRational = Rational(other.integerPart, Integer(1)) + other.fractionalPart;
+    Rational quotient = thisRational / otherRational;
+    
+    Integer intPart = quotient.integerPart();
+    Rational fracPart = quotient.fractionalPart();
+    
+    Real result(intPart, fracPart);
+    result.normalize();
+    return result;
+}
+
+// ========== ПРИСВАИВАЮЩИЕ АРИФМЕТИЧЕСКИЕ ОПЕРАТОРЫ ==========
+
+Real& Real::operator+=(const Real& other) {
+    *this = *this + other;
+    return *this;
+}
+
+Real& Real::operator-=(const Real& other) {
+    *this = *this - other;
+    return *this;
+}
+
+Real& Real::operator*=(const Real& other) {
+    *this = *this * other;
+    return *this;
+}
+
+Real& Real::operator/=(const Real& other) {
+    *this = *this / other;
+    return *this;
+}
+
+// ========== ОПЕРАТОРЫ СРАВНЕНИЯ ==========
+
+bool Real::operator==(const Real& other) const {
+    return integerPart == other.integerPart && fractionalPart == other.fractionalPart;
+}
+
+bool Real::operator!=(const Real& other) const {
+    return !(*this == other);
+}
+
+bool Real::operator<(const Real& other) const {
+    if (integerPart != other.integerPart) {
+        return integerPart < other.integerPart;
+    }
+    return fractionalPart < other.fractionalPart;
+}
+
+bool Real::operator<=(const Real& other) const {
+    return *this < other || *this == other;
+}
+
+bool Real::operator>(const Real& other) const {
+    return !(*this <= other);
+}
+
+bool Real::operator>=(const Real& other) const {
+    return !(*this < other);
+}
+
+// ========== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ==========
+
+std::string Real::toString() const {
+    std::string result = integerPart.toString();
+    if (fractionalPart != Rational(0, 1)) {
+        // Преобразуем дробную часть в десятичную строку
+        std::string fracStr = fractionalPart.toString();
+        size_t pos = fracStr.find('/');
+        if (pos != std::string::npos) {
+            // Преобразуем дробь в десятичную
+            Rational temp = fractionalPart;
+            std::string decimal;
+            Integer numerator = temp.getNumerator();
+            Integer denominator = temp.getDenominator();
+            
+            for (int i = 0; i < 10; ++i) {
+                numerator = numerator * Integer(10);
+                Integer digit = numerator / denominator;
+                numerator = numerator % denominator;
+                decimal += digit.toString();
+                if (numerator == Integer(0)) break;
+            }
+            result += "." + decimal;
+        } else {
+            result += "." + fracStr;
+        }
+    }
+    return result;
+}
+
+double Real::toDouble() const {
+    double result = static_cast<double>(integerPart.toInt());
+    result += fractionalPart.getNumerator().toInt() / 
+              static_cast<double>(fractionalPart.getDenominator().toInt());
+    return result;
+}
+
+std::ostream& operator<<(std::ostream& os, const Real& num) {
+    os << num.toString();
+    return os;
+}
